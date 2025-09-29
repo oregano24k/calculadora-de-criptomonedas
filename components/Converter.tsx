@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import type { CryptoCoin } from '../types';
-import { fetchCoins } from '../services/cryptoService';
 
 const KeypadButton: React.FC<{ onClick: () => void; className?: string; children: React.ReactNode }> = ({ onClick, className = '', children }) => (
   <button
@@ -11,25 +10,17 @@ const KeypadButton: React.FC<{ onClick: () => void; className?: string; children
   </button>
 );
 
+interface ConverterProps {
+  coins: CryptoCoin[];
+  selectedCoin: CryptoCoin | null;
+  onCoinSelect: (coin: CryptoCoin) => void;
+}
 
-const Converter: React.FC = () => {
-  const [coins, setCoins] = useState<CryptoCoin[]>([]);
-  const [selectedCoin, setSelectedCoin] = useState<CryptoCoin | null>(null);
+const Converter: React.FC<ConverterProps> = ({ coins, selectedCoin, onCoinSelect }) => {
   const [amount, setAmount] = useState<string>('1');
   const [isConvertingFromCrypto, setIsConvertingFromCrypto] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-  useEffect(() => {
-    const loadCoins = async () => {
-      const fetchedCoins = await fetchCoins();
-      setCoins(fetchedCoins);
-      if (fetchedCoins.length > 0) {
-        setSelectedCoin(fetchedCoins[0]);
-      }
-    };
-    loadCoins();
-  }, []);
   
   const filteredCoins = useMemo(() => {
     return coins.filter(coin =>
@@ -39,7 +30,7 @@ const Converter: React.FC = () => {
   }, [coins, searchTerm]);
 
   const handleSelectCoin = (coin: CryptoCoin) => {
-    setSelectedCoin(coin);
+    onCoinSelect(coin);
     setIsDropdownOpen(false);
     setSearchTerm('');
   };
@@ -85,14 +76,6 @@ const Converter: React.FC = () => {
 
   const fromCurrency = isConvertingFromCrypto ? selectedCoin?.symbol.toUpperCase() : 'USD';
   const toCurrency = isConvertingFromCrypto ? 'USD' : selectedCoin?.symbol.toUpperCase();
-
-  if (coins.length === 0) {
-    return (
-        <div className="flex justify-center items-center h-full">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-purple-500"></div>
-        </div>
-    );
-  }
 
   return (
     <div className="space-y-4">

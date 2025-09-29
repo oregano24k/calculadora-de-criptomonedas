@@ -6,3 +6,13 @@ export interface CryptoCoin {
   image: string;
   current_price: number;
 }
+
+export interface PriceHistoryPoint {
+  timestamp: number;
+  price: number;
+}
+
+export interface TrendPrediction {
+  analysis: string;
+  predictedPrices: number[];
+}

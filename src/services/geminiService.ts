@@ -1,6 +1,5 @@
-
-import { GoogleGenAI, Type } from "@google/genai";
-import type { PriceHistoryPoint, TrendPrediction } from '../types';
+import { GoogleGenAI } from "@google/genai";
+import type { PriceHistoryPoint } from '../types';
 
 const API_KEY = process.env.API_KEY;
 
@@ -40,12 +39,9 @@ export const getCryptoInfo = async (coinName: string): Promise<string> => {
   }
 };
 
-export const getMarketTrend = async (coinName: string, history: PriceHistoryPoint[]): Promise<TrendPrediction> => {
+export const getMarketTrend = async (coinName: string, history: PriceHistoryPoint[]): Promise<string> => {
   if (!API_KEY) {
-    return {
-      analysis: "La clave de API de Gemini no está configurada. Por favor, configure su clave de API para usar esta función.",
-      predictedPrices: []
-    };
+    return "La clave de API de Gemini no está configurada. Por favor, configure su clave de API para usar esta función.";
   }
 
   try {
@@ -57,38 +53,22 @@ export const getMarketTrend = async (coinName: string, history: PriceHistoryPoin
       Basado en los siguientes datos históricos de precios de los últimos 30 días para ${coinName}:
       ${simplifiedHistory}
 
-      Analiza esta información y proporciona una predicción de tendencia para los próximos 7 días. La respuesta debe ser un objeto JSON.
+      Analiza esta información y proporciona una predicción de tendencia para los próximos días. La respuesta debe:
+      1. Ser en español.
+      2. Indicar si la tendencia probable es alcista, bajista o estable.
+      3. Dar una breve justificación para tu predicción basada en los datos.
+      4. Mantener la respuesta concisa y fácil de entender para un principiante.
+      5. Incluir una advertencia de que los mercados de criptomonedas son volátiles y esto no es un consejo financiero.
     `;
     
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            analysis: {
-              type: Type.STRING,
-              description: "Un análisis en español de la tendencia (alcista, bajista o estable) con una breve justificación y una advertencia sobre la volatilidad del mercado. Debe ser conciso y fácil de entender."
-            },
-            predictedPrices: {
-              type: Type.ARRAY,
-              description: "Un array con 7 números, representando el precio predicho para cada uno de los próximos 7 días.",
-              items: { type: Type.NUMBER }
-            }
-          }
-        }
-      }
     });
     
-    const jsonResponse = JSON.parse(response.text);
-    return jsonResponse;
+    return response.text;
   } catch (error) {
     console.error("Error al obtener datos de la API de Gemini:", error);
-    return {
-      analysis: "Lo siento, no pude obtener la predicción en este momento. Por favor, inténtelo de nuevo más tarde.",
-      predictedPrices: []
-    };
+    return "Lo siento, no pude obtener la predicción en este momento. Por favor, inténtelo de nuevo más tarde.";
   }
 };
